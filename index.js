@@ -17,11 +17,20 @@ async function run() {
     try {
         await client.connect()
         const equipmentCollection = client.db('gymequipment').collection('equipment')
+
         app.get('/equipment', async (req, res) => {
             const query = {}
             const cursor = equipmentCollection.find(query)
-            const equipments = await cursor.limit(3).toArray();
+            const equipments = await cursor.toArray();
             res.send(equipments)
+        })
+
+
+        app.post('/equipment', async (req, res) => {
+
+            const newEquipment = req.body
+            const result = await equipmentCollection.insertOne(newEquipment)
+            res.send(result)
         })
 
         app.get('/equipment/:id', async (req, res) => {
@@ -45,6 +54,13 @@ async function run() {
             res.send(result)
 
 
+        })
+
+        app.delete("/equipment/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) }
+            const result = await equipmentCollection.deleteOne(query)
+            res.send(result)
         })
 
 
