@@ -17,6 +17,7 @@ async function run() {
     try {
         await client.connect()
         const equipmentCollection = client.db('gymequipment').collection('equipment')
+        const addedItemCollection = client.db('gymequipment').collection('addedItem')
 
         app.get('/equipment', async (req, res) => {
             const query = {}
@@ -25,11 +26,28 @@ async function run() {
             res.send(equipments)
         })
 
+        app.get('/addedItem', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email }
+            const cursor = equipmentCollection.find(query)
+            const addItems = await cursor.toArray();
+            res.send(addItems)
+        })
+
+
 
         app.post('/equipment', async (req, res) => {
 
             const newEquipment = req.body
             const result = await equipmentCollection.insertOne(newEquipment)
+            res.send(result)
+        })
+
+
+        app.post('/addedItem', async (req, res) => {
+
+            const newItem = req.body;
+            const result = await addedItemCollection.insertOne(newItem)
             res.send(result)
         })
 
