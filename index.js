@@ -29,9 +29,9 @@ async function run() {
         app.get('/addedItem', async (req, res) => {
             const email = req.query.email;
             const query = { email: email }
-            const cursor = equipmentCollection.find(query)
-            const addItems = await cursor.toArray();
-            res.send(addItems)
+            const cursor = addedItemCollection.find(query)
+            const addItem = await cursor.toArray();
+            res.send(addItem)
         })
 
 
@@ -81,7 +81,12 @@ async function run() {
             res.send(result)
         })
 
-
+        app.delete("/addedItem/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) }
+            const result = await addedItemCollection.deleteOne(query)
+            res.send(result)
+        })
 
 
     }
