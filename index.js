@@ -140,9 +140,7 @@ run().catch(console.dir)
 app.get('/', (req, res) => {
     res.send('running my node ')
 })
-app.get('/anything', (req, res) => {
-    res.send('anything')
-})
+
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
 })
