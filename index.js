@@ -3,10 +3,32 @@ const cors = require('cors');
 const app = express();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000;
+const jwt = require('jsonwebtoken');
 require("dotenv").config();
 
 app.use(cors())
 app.use(express.json())
+
+function verifyJWT(req, res, next) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).send({ message: 'unauthorized' })
+    }
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+            return res.status(403).send({ message: "forbidden access" })
+        }
+        console.log('decoded', decoded)
+        req.decoded = decoded;
+        next();
+
+
+    })
+
+
+
+}
 
 
 
@@ -19,6 +41,15 @@ async function run() {
         const equipmentCollection = client.db('gymequipment').collection('equipment')
         const addedItemCollection = client.db('gymequipment').collection('addedItem')
 
+        app.post('/login', async (req, res) => {
+            const user = req.body;
+            const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+                expiresIn: '1d'
+            });
+            res.send({ accessToken });
+
+        })
+
         app.get('/equipment', async (req, res) => {
             const query = {}
             const cursor = equipmentCollection.find(query)
@@ -26,12 +57,19 @@ async function run() {
             res.send(equipments)
         })
 
-        app.get('/addedItem', async (req, res) => {
+        app.get('/addedItem', verifyJWT, async (req, res) => {
+            const decodedEmail = req.decoded.email;
+
             const email = req.query.email;
-            const query = { email: email }
-            const cursor = addedItemCollection.find(query)
-            const addItem = await cursor.toArray();
-            res.send(addItem)
+            if (decodedEmail === email) {
+                const query = { email: email }
+                const cursor = addedItemCollection.find(query)
+                const addItem = await cursor.toArray();
+                res.send(addItem)
+            }
+            else {
+                res.status(403).send({ message: "forbidden access" })
+            }
         })
 
 
